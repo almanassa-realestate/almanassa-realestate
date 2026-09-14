@@ -8,7 +8,7 @@ function errorText(e){
   if(String(e?.message).includes('EDIT_CONFLICT'))return 'عُدّل هذا الإعلان من نافذة أخرى. أعد فتحه قبل حفظ تغييرات جديدة.';
   return 'تعذر إكمال العملية. تحقق من الاتصال والصلاحيات. تغييرات النموذج محفوظة هنا لإعادة المحاولة.';
 }
-function setBusy(value){busy=value;document.querySelectorAll('#formBox input,#formBox select,#formBox textarea,#formBox button,#list button,#logoutBtn,#refreshBtn').forEach(e=>e.disabled=value);$('saveSpin').style.display=value?'inline':'none';if(!value)renderGallery()}
+function setBusy(value){busy=value;document.querySelectorAll('#formBox input,#formBox select,#formBox textarea,#formBox button,#list button,#logoutBtn,#refreshBtn,#newPropertyBtn').forEach(e=>e.disabled=value);$('saveSpin').style.display=value?'inline':'none';if(!value)renderGallery()}
 async function result(query){const r=await query;if(r.error)throw r.error;return r.data}
 function signedOut(){currentUser=null;currentProfile=null;resetForm();items=[];$('list').replaceChildren();$('adminBox').classList.add('hidden');$('loginBox').classList.remove('hidden')}
 async function verifySession(user){
@@ -151,6 +151,7 @@ async function init(){
   $('formBox').addEventListener('submit',saveProperty);$('formBox').addEventListener('input',()=>dirty=true);
   $('cover').addEventListener('change',addImages);$('adminSearch').addEventListener('input',renderList);$('showArchived').addEventListener('change',renderList);
   $('cancelEditBtn').addEventListener('click',()=>{if(!dirty||confirm('تجاهل التغييرات غير المحفوظة؟')){resetForm();hideMessage('saveMsg')}});
+  $('newPropertyBtn')?.addEventListener('click',()=>{if(!dirty||confirm('تجاهل التغييرات غير المحفوظة وإضافة عقار جديد؟')){resetForm();hideMessage('saveMsg');$('formBox').scrollIntoView({behavior:'smooth',block:'start'});$('title').focus()}});
   $('refreshBtn').addEventListener('click',()=>loadProperties().catch(e=>$('listMsg').textContent=errorText(e)));
   $('logoutBtn').addEventListener('click',async()=>{if(dirty&&!confirm('تسجيل الخروج وتجاهل التغييرات غير المحفوظة؟'))return;try{await result(db.auth.signOut());signedOut()}catch(e){$('listMsg').textContent=errorText(e)}});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
