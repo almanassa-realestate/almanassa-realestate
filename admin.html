@@ -32,6 +32,9 @@
 <input id="documents" placeholder="حالة الأوراق / المستندات">
 <select id="status"><option value="draft">مسودة</option><option value="published">منشور</option><option value="hidden">مخفي</option><option value="archived">مؤرشف</option></select>
 <input id="video" class="full" type="url" placeholder="رابط الفيديو (Facebook / YouTube أو رابط HTTPS)">
+<label class="full" for="googleMapsUrl">📍 موقع العقار على خرائط Google (اختياري)
+<input id="googleMapsUrl" type="url" dir="ltr" maxlength="4096" placeholder="https://maps.app.goo.gl/..." aria-describedby="mapsHelp">
+<span id="mapsHelp" class="muted">افتح موقع العقار في خرائط Google، اختر «مشاركة» ثم «نسخ الرابط» وألصقه هنا. مسح الرابط يخفي زر الموقع من تفاصيل العقار.</span></label>
 <textarea id="description" class="full" maxlength="6000" placeholder="تفاصيل العقار"></textarea>
 <div class="full"><h3>صور العقار</h3><p class="muted">الصورة الأولى هي الغلاف. يمكنك تغيير الترتيب وإزالة الصور قبل حفظ التعديلات.</p><div id="gallery" class="gallery-editor"></div></div>
 <label class="full"><span id="coverLabel">إضافة صور</span> <span class="muted">(حتى 20 صورة، JPG/PNG/WebP، 10MB للصورة؛ تُضغط الصور تلقائيًا)</span><input id="cover" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
@@ -41,5 +44,5 @@
 <label class="check"><input id="showArchived" type="checkbox"> عرض المحذوفات المؤرشفة</label><p id="listMsg" role="status" aria-live="polite"></p><div id="list"><p class="muted">جارٍ التحميل...</p></div></div>
 </div></div>
 <script src="vendor/supabase.js" defer></script>
-<script src="common.js" defer></script>
-<script src="admin.js?v=20260914-2" defer></script></body></html>
+<script src="common.js?v=20260916-maps" defer></script>
+<script src="admin.js?v=20260916-maps" defer></script></body></html>

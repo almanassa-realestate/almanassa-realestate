@@ -19,3 +19,14 @@ function priceText(p){
   const unit=p.price_basis==='per_m2'?' د.ل / م²':p.price_basis==='total'?' د.ل إجمالي':' د.ل — وحدة السعر بحاجة للتأكيد';
   return formatNum(p.price)+unit+(p.price_type==='negotiable'?' — قابل للتفاوض':'');
 }
+
+function googleMapsUrl(value){
+  const clean=safeUrl(String(value??'').trim());
+  if(!clean||clean.length>4096)return '';
+  const u=new URL(clean),host=u.hostname.toLowerCase();
+  if(u.port)return '';
+  const short=(host==='maps.app.goo.gl'||host==='goo.gl'&&u.pathname.startsWith('/maps/'))&&u.pathname.length>1;
+  const mapsHost=host==='maps.google.com';
+  const mapsPath=(host==='google.com'||host==='www.google.com')&&/^\/maps(?:\/|$)/.test(u.pathname);
+  return short||mapsHost||mapsPath?clean:'';
+}

@@ -76,7 +76,7 @@ async function editProperty(id,force=false){
   if(!force&&dirty&&!confirm('تجاهل التغييرات غير المحفوظة وفتح هذا العقار؟'))return;
   const p=await result(db.from('properties').select('*,property_images(id,storage_path,is_cover,sort_order),property_videos(id,video_url)').eq('id',id).single());
   releaseGallery();editing=p;dirty=false;hideMessage('saveMsg');
-  const fields={title:'title',type:'type',area:'area_id',size:'size_m2',price:'price',priceType:'price_type',priceBasis:'price_basis',availability:'availability',frontage:'frontage_m',depth:'depth_m',documents:'documents_status',status:'status',description:'description'};
+  const fields={title:'title',type:'type',area:'area_id',size:'size_m2',price:'price',priceType:'price_type',priceBasis:'price_basis',availability:'availability',frontage:'frontage_m',depth:'depth_m',documents:'documents_status',status:'status',description:'description',googleMapsUrl:'google_maps_url'};
   for(const [field,key] of Object.entries(fields))$(field).value=p[key]??'';
   $('featured').checked=!!p.featured;$('video').value=p.property_videos?.[0]?.video_url||'';$('cover').value='';
   originalImages=sortedImages(p);gallery=originalImages.map(i=>({...i,preview:storageUrl(i.storage_path)}));renderGallery();
@@ -111,7 +111,9 @@ async function addImages(){
 }
 function numeric(id){const v=$(id).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error('أدخل أرقامًا موجبة للمساحة والسعر والأبعاد.');return n}
 function payload(){
-  const p={title:$('title').value.trim(),type:$('type').value,area_id:$('area').value,size_m2:numeric('size'),price:numeric('price'),price_type:$('priceType').value,price_basis:$('priceBasis').value,availability:$('availability').value,frontage_m:numeric('frontage'),depth_m:numeric('depth'),documents_status:$('documents').value.trim()||null,description:$('description').value.trim()||null,status:$('status').value,featured:$('featured').checked};
+  const rawMap=$('googleMapsUrl').value.trim(),mapUrl=googleMapsUrl(rawMap);
+  if(rawMap&&!mapUrl)throw new Error('ألصق رابط موقع صحيحًا من خرائط Google يبدأ بـ https://');
+  const p={google_maps_url:mapUrl||null,title:$('title').value.trim(),type:$('type').value,area_id:$('area').value,size_m2:numeric('size'),price:numeric('price'),price_type:$('priceType').value,price_basis:$('priceBasis').value,availability:$('availability').value,frontage_m:numeric('frontage'),depth_m:numeric('depth'),documents_status:$('documents').value.trim()||null,description:$('description').value.trim()||null,status:$('status').value,featured:$('featured').checked};
   if(!p.title||!p.area_id)throw new Error('أدخل اسم العقار والمنطقة.');
   if(p.price_type==='on_request')p.price=null;
   else if(p.price===null||p.price_basis==='unspecified')throw new Error('أدخل السعر وحدد هل هو إجمالي أم للمتر المربع.');
