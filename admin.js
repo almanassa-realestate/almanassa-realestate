@@ -18,6 +18,7 @@ async function verifySession(user){
   $('who').textContent='مسجل الدخول: '+(profile.full_name||user.email)+' — '+(profile.role==='admin'?'مدير':'محرر');
   $('loginBox').classList.add('hidden');$('adminBox').classList.remove('hidden');
   await Promise.all([loadAreas(),loadProperties()]);
+  loadVisitStats();
 }
 async function login(){
   hideMessage('loginMsg');const email=$('email').value.trim(),password=$('password').value;
@@ -30,6 +31,34 @@ async function login(){
 async function loadAreas(){
   const areas=await result(db.from('areas').select('id,name').eq('is_active',true).order('name'));
   $('area').replaceChildren(...areas.map(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.name;return o}));
+}
+async function loadVisitStats(){
+  $('visitsRecent').textContent='جارٍ تحميل الزيارات...';
+  const today=new Date();today.setHours(0,0,0,0);
+  const week=new Date();week.setDate(week.getDate()-7);
+  try{
+    const [total,daily,propertyWeek,recent]=await Promise.all([
+      db.from('site_visits').select('id',{count:'exact',head:true}).eq('visit_kind','site'),
+      db.from('site_visits').select('id',{count:'exact',head:true}).eq('visit_kind','site').gte('created_at',today.toISOString()),
+      db.from('site_visits').select('id',{count:'exact',head:true}).eq('visit_kind','property').gte('created_at',week.toISOString()),
+      db.from('site_visits').select('visit_kind,property_number,created_at').order('created_at',{ascending:false}).limit(12)
+    ]);
+    for(const r of [total,daily,propertyWeek,recent])if(r.error)throw r.error;
+    $('visitTotal').textContent=String(total.count??0);
+    $('visitToday').textContent=String(daily.count??0);
+    $('visitPropertyWeek').textContent=String(propertyWeek.count??0);
+    const box=$('visitsRecent');box.replaceChildren();
+    if(!recent.data?.length){box.textContent='لا توجد زيارات مسجّلة بعد.';return}
+    for(const entry of recent.data){
+      const row=document.createElement('div');row.className='visit-row';
+      const label=document.createElement('span');
+      label.textContent=entry.visit_kind==='property'?'مشاهدة العقار رقم '+entry.property_number:'زيارة الموقع';
+      const time=document.createElement('time');
+      time.dateTime=entry.created_at;
+      time.textContent=new Intl.DateTimeFormat('ar-LY',{timeZone:'Africa/Tripoli',dateStyle:'medium',timeStyle:'short'}).format(new Date(entry.created_at));
+      row.append(label,time);box.append(row);
+    }
+  }catch{$('visitsRecent').textContent='تعذر تحميل الزيارات. اضغط «تحديث الزيارات» للمحاولة مجددًا.'}
 }
 function statusLabel(s){return {draft:'مسودة',published:'منشور',hidden:'مخفي',archived:'في المحذوفات'}[s]||s}
 function button(text,fn,cls='secondary'){
@@ -155,6 +184,7 @@ async function init(){
   $('cancelEditBtn').addEventListener('click',()=>{if(!dirty||confirm('تجاهل التغييرات غير المحفوظة؟')){resetForm();hideMessage('saveMsg')}});
   $('newPropertyBtn')?.addEventListener('click',()=>{if(!dirty||confirm('تجاهل التغييرات غير المحفوظة وإضافة عقار جديد؟')){resetForm();hideMessage('saveMsg');$('formBox').scrollIntoView({behavior:'smooth',block:'start'});$('title').focus()}});
   $('refreshBtn').addEventListener('click',()=>loadProperties().catch(e=>$('listMsg').textContent=errorText(e)));
+  $('visitsRefresh').addEventListener('click',loadVisitStats);
   $('logoutBtn').addEventListener('click',async()=>{if(dirty&&!confirm('تسجيل الخروج وتجاهل التغييرات غير المحفوظة؟'))return;try{await result(db.auth.signOut());signedOut()}catch(e){$('listMsg').textContent=errorText(e)}});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   try{
