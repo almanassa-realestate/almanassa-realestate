@@ -5,6 +5,17 @@ async function api(path){
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
   try{const r=await fetch(SITE.api+'/rest/v1/'+path,{headers:{apikey:SITE.key},signal:ctrl.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(timer)}
 }
+async function trackVisit(kind,number=null){
+  let key='visit:'+kind+(number==null?'':':'+number);
+  try{if(sessionStorage.getItem(key))return}catch{}
+  try{
+    const response=await fetch(SITE.api+'/rest/v1/site_visits',{
+      method:'POST',headers:{apikey:SITE.key,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({visit_kind:kind,property_number:number}),keepalive:true
+    });
+    if(response.ok)try{sessionStorage.setItem(key,'1')}catch{}
+  }catch{/* Counting must never interrupt browsing. */}
+}
 async function load(){
   $('loading').hidden=false;$('error').style.display='none';
   try{
@@ -34,6 +45,7 @@ function render(){
 }
 function openDetails(p,push=false){
   previousFocus=document.activeElement;openedNumber=p.property_number;
+  trackVisit('property',p.property_number);
   if(push){const url=new URL(location.href);url.searchParams.set('property',p.property_number);url.hash='';history.pushState({propertyModal:true},'',url)}
   const mapUrl=googleMapsUrl(p.google_maps_url);
   const images=sortedImages(p),video=safeUrl(p.property_videos?.[0]?.video_url);
@@ -71,4 +83,5 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeDetails();
   if(e.key==='Tab'){const nodes=[...$('modal').querySelectorAll('a[href],button:not(:disabled)')];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
 });
+trackVisit('site');
 load();
