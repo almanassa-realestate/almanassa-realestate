@@ -8,7 +8,7 @@ const SITE = Object.freeze({
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const safeUrl=u=>{try{const x=new URL(u);return x.protocol==='https:'&&!x.username&&!x.password?x.href:''}catch{return ''}};
 const formatNum=v=>v==null||v===''?'—':new Intl.NumberFormat('ar-LY',{maximumFractionDigits:2}).format(Number(v));
-const storageUrl=path=>path?SITE.api+'/storage/v1/object/public/property-media/'+String(path).split('/').map(encodeURIComponent).join('/'):'';
+const storageUrl=path=>path==='site-assets/almanassa-logo.jpg'?SITE.url+'assets/almanassa-logo.jpg':path?SITE.api+'/storage/v1/object/public/property-media/'+String(path).split('/').map(encodeURIComponent).join('/'):'';
 const sortedImages=p=>(p.property_images||[]).slice().sort((a,b)=>Number(b.is_cover)-Number(a.is_cover)||a.sort_order-b.sort_order);
 const coverUrl=p=>storageUrl(sortedImages(p)[0]?.storage_path);
 const propertyLink=p=>SITE.url+'?property='+encodeURIComponent(p.property_number);
